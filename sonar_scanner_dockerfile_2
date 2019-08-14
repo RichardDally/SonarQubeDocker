@@ -1,0 +1,22 @@
+FROM openjdk:8-alpine
+
+# Available versions are here: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/
+ENV SONAR_SCANNER_VERSION=4.0.0.1744-linux \
+    SONAR_URL=https://binaries.sonarsource.com/Distribution/sonar-scanner-cli
+
+RUN wget -O sonarscanner.zip --no-verbose $SONAR_URL/sonar-scanner-cli-$SONAR_SCANNER_VERSION.zip
+
+RUN apk update && apk add --no-cache p7zip
+
+RUN 7z x sonarscanner.zip
+RUN mv sonar-scanner-$SONAR_SCANNER_VERSION /opt/sonar-scanner
+RUN rm sonarscanner.zip
+
+RUN rm /opt/sonar-scanner/jre/bin/java
+RUN ln -s /usr/bin/java /opt/sonar-scanner/jre/bin/java
+
+ENV SONARQUBE_JDBC_USERNAME=sonar \
+    SONARQUBE_JDBC_PASSWORD=sonar \
+    SONARQUBE_JDBC_URL=http://127.0.0.1:9000
+
+ENTRYPOINT ["/opt/sonar-scanner/bin/sonar-scanner"]

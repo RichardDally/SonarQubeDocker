@@ -1,0 +1,11 @@
+FROM alpine:3.10.1
+
+RUN apk update && apk upgrade && apk add --no-cache git openssh maven
+
+WORKDIR /sonar-scanner/
+
+RUN git clone --single-branch --branch 4.0.0.1744 https://github.com/SonarSource/sonar-scanner-cli.git
+
+RUN cd sonar-scanner-cli && mvn package
+
+CMD ["ls", "-al"]
