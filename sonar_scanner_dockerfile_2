@@ -15,8 +15,33 @@ RUN rm sonarscanner.zip
 RUN rm /opt/sonar-scanner/jre/bin/java
 RUN ln -s /usr/bin/java /opt/sonar-scanner/jre/bin/java
 
-ENV SONARQUBE_JDBC_USERNAME=sonar \
-    SONARQUBE_JDBC_PASSWORD=sonar \
-    SONARQUBE_JDBC_URL=http://127.0.0.1:9000
+#COPY sonar-scanner.properties /opt/sonar-scanner/conf/
 
-ENTRYPOINT ["/opt/sonar-scanner/bin/sonar-scanner"]
+# Source code copy
+#COPY PyTrading/*.py /PyTrading/
+
+#RUN python -m pip install pytest-cov --user
+
+# Generate coverage.xml
+#RUN pytest --cov=PyTrading --cov-report xml
+
+# Code coverage
+#COPY coverage.xml /PyTrading/
+
+RUN git clone https://github.com/RichardDally/PyTrading
+
+# coverage.xml must be generated before sonar scanning project
+CMD ["/opt/sonar-scanner/bin/sonar-scanner", \
+     "-Dsonar.projectKey=PyTrading", \
+     "-Dsonar.projectName=PyTrading", \
+     "-Dsonar.projectVersion=1", \
+     "-Dsonar.scm.provider=git", \
+     "-Dsonar.python.coverage.reportPath=PyTrading/coverage.xml", \
+     "-Dsonar.host.url=http://172.17.0.1:9000", \
+     "-Dsonar.projectBaseDir=/PyTrading/", \
+     "-Dsonar.sources=/PyTrading/"]
+
+# These parameters enable Pull Request analysis !
+# "-Dsonar.pullrequest.key=5"                         # Unique identifier of your PR. Must correspond to the key of the PR in GitHub or TFS.
+# "-Dsonar.pullrequest.branch=feature/my-new-feature" # The name of the branch that contains the changes to be merged.
+# "-Dsonar.pullrequest.base=master"                   # The long-lived branch into which the PR will be merged.
