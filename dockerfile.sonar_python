@@ -1,0 +1,38 @@
+FROM python:3.8.5-buster
+
+ENV SONAR_SCANNER_VERSION="4.4.0.2170"
+
+WORKDIR /root
+
+RUN apt-get update
+RUN apt-get install -y wget unzip
+RUN wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+
+RUN unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+RUN ln -s sonar-scanner-${SONAR_SCANNER_VERSION}-linux/ sonar-scanner
+
+RUN apt-get purge -y --auto-remove unzip && rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/root/sonar-scanner/bin:${PATH}"
+
+
+WORKDIR /app
+
+# Clone project
+RUN git clone https://github.com/RichardDally/PyTrading
+
+WORKDIR /app/PyTrading
+
+RUN python3 -m pip install -r requirements.txt
+
+RUN apt-get update
+RUN apt-get install -y wget unzip
+RUN wget https://github.com/google/protobuf/releases/download/v3.4.0/protoc-3.4.0-linux-x86_64.zip
+RUN unzip protoc-3.4.0-linux-x86_64.zip -d protoc-3.4.0
+RUN protoc-3.4.0/bin/protoc --python_out=. *.proto
+
+RUN pytest --cov=. --cov-report=xml:/app/coverage.xml
+
+RUN cat /app/coverage.xml
+
+ENTRYPOINT ["sonar-scanner"]

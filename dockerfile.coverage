@@ -1,6 +1,4 @@
-FROM python:3.7.3-alpine3.9
-
-MAINTAINER Richard Dally "r.dally@protonmail.com"
+FROM python:3.8.5-buster
 
 ARG GITHUB_PROJECT
 
